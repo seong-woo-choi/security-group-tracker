@@ -7,7 +7,7 @@ import (
 
 func MainController(app *fiber.App) {
 	apiV1Group := app.Group("/api/v1", logger.New())
-	securityGroup := apiV1Group.Group("/securityGroup", logger.New())
+	securityGroup := apiV1Group.Group("/securityGroup")
 
 	SecurityGroupController(securityGroup)
 }

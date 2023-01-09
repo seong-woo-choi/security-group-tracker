@@ -52,12 +52,12 @@ func GetSecurityGroup(resourceName string) (error, []MskSecurityGroupId) {
 		}
 	}
 
+	msks := []MskSecurityGroupId{}
+
 	if cluster == nil {
-		fmt.Println("Cluster not found")
-		return err, nil
+		return err, msks
 	}
 
-	msks := []MskSecurityGroupId{}
 	for _, val := range cluster {
 		msk := MskSecurityGroupId{
 			ClusterName:      *val.ClusterName,

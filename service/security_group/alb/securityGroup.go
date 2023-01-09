@@ -27,11 +27,7 @@ func GetSecurityGroup(resourceName string) (error, []AlbSecurityGroupId) {
 	svc := elbv2.New(sess)
 
 	// Set up the DescribeLoadBalancers input
-	input := &elbv2.DescribeLoadBalancersInput{
-		// Names: []*string{
-		// 	aws.String("alpha-web-search"),
-		// },
-	}
+	input := &elbv2.DescribeLoadBalancersInput{}
 
 	// Call DescribeLoadBalancers
 	result, err := svc.DescribeLoadBalancers(input)

@@ -3,6 +3,7 @@ package securityGroup
 import (
 	alb "go-sdk/service/security_group/alb"
 	docdb "go-sdk/service/security_group/docdb"
+	ec2 "go-sdk/service/security_group/ec2"
 	elasticache "go-sdk/service/security_group/elasticache"
 	msk "go-sdk/service/security_group/msk"
 	rds "go-sdk/service/security_group/rds"
@@ -44,7 +45,13 @@ func GetSecurityGroup(c *fiber.Ctx) error {
 			return c.JSON(fiber.Map{"status": "404", "message": err.Error()})
 		}
 		return c.JSON(elasticache)
+	case "ec2":
+		err, ec2 := ec2.GetSecurityGroup(resourceName)
+		if err != nil {
+			return c.JSON(fiber.Map{"status": "404", "message": err.Error()})
+		}
+		return c.JSON(ec2)
 	}
 
-	return c.JSON(fiber.Map{"status": "404", "message": "옳바른 리소스 타입을 입력해주세요(alb, elasticache, msk, rds, docdb, rds)"})
+	return c.JSON(fiber.Map{"status": "404", "message": "옳바른 리소스 타입을 입력해주세요(alb, elasticache, msk, rds, docdb, rds, ec2)"})
 }
