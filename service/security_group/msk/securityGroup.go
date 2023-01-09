@@ -10,14 +10,15 @@ import (
 )
 
 type MskSecurityGroupId struct {
-	ClusterName      string
+	MskClusterName   string
 	SecurityGroupIds []string
 }
 
 func GetSecurityGroup(resourceName string) (error, []MskSecurityGroupId) {
+	msks := []MskSecurityGroupId{}
+
 	// 1. Load MSK Cluster List
-	// 2. Find Cluster to Search Name in MSK Cluster List
-	// 3. Text to Stdout from specific kafka cluster
+	// 2. Find specific Cluster Name in MSK Cluster List
 
 	// Load AWS credentials from the environment
 	sess, err := session.NewSession(&aws.Config{
@@ -25,7 +26,7 @@ func GetSecurityGroup(resourceName string) (error, []MskSecurityGroupId) {
 	})
 	if err != nil {
 		fmt.Println("Error creating AWS session:", err)
-		return err, nil
+		return err, msks
 	}
 
 	// Create an MSK client
@@ -38,10 +39,8 @@ func GetSecurityGroup(resourceName string) (error, []MskSecurityGroupId) {
 	listResult, err := svc.ListClusters(input)
 	if err != nil {
 		fmt.Println("Error calling ListClusters:", err)
-		return err, nil
+		return err, msks
 	}
-
-	//var cluster []string
 
 	// Find the cluster with the desired name
 	var cluster []*kafka.ClusterInfo
@@ -52,15 +51,13 @@ func GetSecurityGroup(resourceName string) (error, []MskSecurityGroupId) {
 		}
 	}
 
-	msks := []MskSecurityGroupId{}
-
 	if cluster == nil {
-		return err, msks
+		return nil, msks
 	}
 
 	for _, val := range cluster {
 		msk := MskSecurityGroupId{
-			ClusterName:      *val.ClusterName,
+			MskClusterName:   *val.ClusterName,
 			SecurityGroupIds: []string{},
 		}
 		for _, securityGroupId := range val.BrokerNodeGroupInfo.SecurityGroups {

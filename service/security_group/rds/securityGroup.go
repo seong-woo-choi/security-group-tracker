@@ -10,45 +10,49 @@ import (
 )
 
 type RdsSecurityGroup struct {
-	Arn              string
+	RdsArnName       string
 	SecurityGroupIds []string
 }
 
 func GetSecurityGroup(resourceName string) (error, []RdsSecurityGroup) {
+	rdss := []RdsSecurityGroup{}
 	// Load AWS credentials from the environment
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String("ap-northeast-2"),
 	})
 	if err != nil {
 		fmt.Println("Error creating AWS session:", err)
-		return err, nil
+		return err, rdss
 	}
 
 	svc := rds.New(sess)
 
-	result, err := svc.DescribeDBInstances(nil)
-	if err != nil {
-		fmt.Println(err)
-		return err, nil
+	input := &rds.DescribeDBInstancesInput{
+		Filters: []*rds.Filter{
+			{
+				Name:   aws.String("engine"),
+				Values: []*string{aws.String("aurora-mysql")},
+			},
+		},
 	}
 
-	// fmt.Println(result.DBInstances)
-
-	rdss := []RdsSecurityGroup{}
+	result, err := svc.DescribeDBInstances(input)
+	if err != nil {
+		fmt.Println(err)
+		return err, rdss
+	}
 
 	// Iterate through the list of RDS instances
 	for _, instance := range result.DBInstances {
 		// Check if the RDS instance name matches the name you specified
-		if strings.Contains(*instance.DBInstanceArn, resourceName) && *instance.Engine == "aurora-mysql" {
+		if strings.Contains(*instance.DBInstanceArn, resourceName) {
 			rds := RdsSecurityGroup{
-				Arn:              *instance.DBInstanceArn,
+				RdsArnName:       *instance.DBInstanceArn,
 				SecurityGroupIds: []string{},
 			}
-
 			for _, securityGroupId := range instance.VpcSecurityGroups {
 				rds.SecurityGroupIds = append(rds.SecurityGroupIds, *securityGroupId.VpcSecurityGroupId)
 			}
-
 			rdss = append(rdss, rds)
 		}
 	}

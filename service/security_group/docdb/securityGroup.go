@@ -10,18 +10,20 @@ import (
 )
 
 type DocdbSecurityGroup struct {
-	Arn              string
+	DocdbArnName     string
 	SecurityGroupIds []string
 }
 
 func GetSecurityGroup(resourceName string) (error, []DocdbSecurityGroup) {
+	docdbs := []DocdbSecurityGroup{}
+
 	// Load AWS credentials from the environment
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String("ap-northeast-2"),
 	})
 	if err != nil {
 		fmt.Println("Error creating AWS session:", err)
-		return err, nil
+		return err, docdbs
 	}
 
 	svc := docdb.New(sess)
@@ -30,19 +32,13 @@ func GetSecurityGroup(resourceName string) (error, []DocdbSecurityGroup) {
 	result, err := svc.DescribeDBClusters(input)
 	if err != nil {
 		fmt.Println("Error calling DescribeClusters", err)
-		return err, nil
+		return err, docdbs
 	}
 
-	// fmt.Println(result)
-
-	// docdb 나 rds 의 경우 클러스터의 보안그룹을 인스턴스들이 따라가는 것인지?
-	// 혹은 인스턴스 별로 개별 보안그룹을 줄 수 있는 것인지 궁금하다.
-
-	docdbs := []DocdbSecurityGroup{}
 	for _, cluster := range result.DBClusters {
 		if strings.Contains(*cluster.DBClusterArn, resourceName) && *cluster.Engine == "docdb" {
 			docdb := DocdbSecurityGroup{
-				Arn:              *cluster.DBClusterArn,
+				DocdbArnName:     *cluster.DBClusterArn,
 				SecurityGroupIds: []string{},
 			}
 			for _, securityGroupId := range cluster.VpcSecurityGroups {
@@ -50,10 +46,6 @@ func GetSecurityGroup(resourceName string) (error, []DocdbSecurityGroup) {
 			}
 			docdbs = append(docdbs, docdb)
 		}
-	}
-
-	if len(docdbs) == 0 {
-		fmt.Println("DocumentDB Cluster Not Found")
 	}
 
 	return nil, docdbs

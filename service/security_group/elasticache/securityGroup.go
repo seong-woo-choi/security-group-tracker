@@ -10,18 +10,20 @@ import (
 )
 
 type RedisSecurityGroup struct {
-	Arn              string
+	RedisArnName     string
 	SecurityGroupIds []string
 }
 
 func GetSecurityGroup(resourceName string) (error, []RedisSecurityGroup) {
+	elasticaches := []RedisSecurityGroup{}
+
 	// Load AWS credentials from the environment
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String("ap-northeast-2"),
 	})
 	if err != nil {
 		fmt.Println("Error creating AWS session:", err)
-		return err, nil
+		return err, elasticaches
 	}
 
 	svc := elasticache.New(sess)
@@ -30,15 +32,13 @@ func GetSecurityGroup(resourceName string) (error, []RedisSecurityGroup) {
 	result, err := svc.DescribeCacheClusters(input)
 	if err != nil {
 		fmt.Println("Error calling DescribeCacheClusters", err)
-		return err, nil
+		return err, elasticaches
 	}
 
-	elasticaches := []RedisSecurityGroup{}
 	for _, cluster := range result.CacheClusters {
 		if strings.Contains(*cluster.ARN, resourceName) {
-			fmt.Println(cluster)
 			elasticache := RedisSecurityGroup{
-				Arn:              *cluster.ARN,
+				RedisArnName:     *cluster.ARN,
 				SecurityGroupIds: []string{},
 			}
 			for _, securityGroup := range cluster.SecurityGroups {

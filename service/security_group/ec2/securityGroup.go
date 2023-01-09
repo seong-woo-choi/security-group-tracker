@@ -9,12 +9,13 @@ import (
 )
 
 type Ec2SecurityGroup struct {
-	GroupName        string
+	Ec2GroupName     string
 	SecurityGroupIds []string
 }
 
 func GetSecurityGroup(resourceName string) (error, []Ec2SecurityGroup) {
 	resourceName = "*" + resourceName + "*"
+	ec2s := []Ec2SecurityGroup{}
 
 	// Load AWS credentials from the environment
 	sess, err := session.NewSession(&aws.Config{
@@ -22,7 +23,7 @@ func GetSecurityGroup(resourceName string) (error, []Ec2SecurityGroup) {
 	})
 	if err != nil {
 		fmt.Println("Error creating AWS session:", err)
-		return err, nil
+		return err, ec2s
 	}
 
 	svc := ec2.New(sess)
@@ -38,13 +39,12 @@ func GetSecurityGroup(resourceName string) (error, []Ec2SecurityGroup) {
 	result, err := svc.DescribeSecurityGroups(input)
 	if err != nil {
 		fmt.Println("Error calling DescribeSecurityGroups", err)
-		return err, nil
+		return err, ec2s
 	}
 
-	ec2s := []Ec2SecurityGroup{}
 	for _, ec2Value := range result.SecurityGroups {
 		ec2 := Ec2SecurityGroup{
-			GroupName:        *ec2Value.GroupName,
+			Ec2GroupName:     *ec2Value.GroupName,
 			SecurityGroupIds: []string{},
 		}
 		ec2.SecurityGroupIds = append(ec2.SecurityGroupIds, *ec2Value.GroupId)
