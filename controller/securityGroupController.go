@@ -1,7 +1,7 @@
 package controller
 
 import (
-	securityGroup "go-sdk/service/security_group"
+	securityGroup "go-sdk/service/securityGroup"
 
 	"github.com/gofiber/fiber/v2"
 )

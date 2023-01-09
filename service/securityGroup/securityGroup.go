@@ -1,12 +1,12 @@
 package securityGroup
 
 import (
-	alb "go-sdk/service/security_group/alb"
-	docdb "go-sdk/service/security_group/docdb"
-	ec2 "go-sdk/service/security_group/ec2"
-	elasticache "go-sdk/service/security_group/elasticache"
-	msk "go-sdk/service/security_group/msk"
-	rds "go-sdk/service/security_group/rds"
+	alb "go-sdk/service/securityGroup/alb"
+	docdb "go-sdk/service/securityGroup/docdb"
+	ec2 "go-sdk/service/securityGroup/ec2"
+	elasticache "go-sdk/service/securityGroup/elasticache"
+	msk "go-sdk/service/securityGroup/msk"
+	rds "go-sdk/service/securityGroup/rds"
 
 	"github.com/gofiber/fiber/v2"
 )
