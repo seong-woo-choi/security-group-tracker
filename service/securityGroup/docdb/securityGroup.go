@@ -27,21 +27,31 @@ func GetSecurityGroup(resourceName string) (error, []DocdbSecurityGroup) {
 	}
 
 	svc := docdb.New(sess)
-	input := &docdb.DescribeDBClustersInput{}
 
-	result, err := svc.DescribeDBClusters(input)
+	input := &docdb.DescribeDBInstancesInput{
+		Filters: []*docdb.Filter{
+			{
+				Name:   aws.String("engine"),
+				Values: []*string{(aws.String("docdb"))},
+			},
+		},
+	}
+
+	result, err := svc.DescribeDBInstances(input)
 	if err != nil {
 		fmt.Println("Error calling DescribeClusters", err)
 		return err, docdbs
 	}
 
-	for _, cluster := range result.DBClusters {
-		if strings.Contains(*cluster.DBClusterArn, resourceName) && *cluster.Engine == "docdb" {
+	fmt.Println(result.DBInstances)
+
+	for _, instance := range result.DBInstances {
+		if strings.Contains(*instance.DBInstanceArn, resourceName) {
 			docdb := DocdbSecurityGroup{
-				DocdbArnName:     *cluster.DBClusterArn,
+				DocdbArnName:     *instance.DBInstanceArn,
 				SecurityGroupIds: []string{},
 			}
-			for _, securityGroupId := range cluster.VpcSecurityGroups {
+			for _, securityGroupId := range instance.VpcSecurityGroups {
 				docdb.SecurityGroupIds = append(docdb.SecurityGroupIds, *securityGroupId.VpcSecurityGroupId)
 			}
 			docdbs = append(docdbs, docdb)

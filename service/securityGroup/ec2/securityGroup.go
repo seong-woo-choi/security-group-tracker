@@ -45,15 +45,15 @@ func GetSecurityGroup(resourceName string) (error, []Ec2SecurityGroup) {
 		return err, ec2s
 	}
 
-	for _, a := range result.Reservations {
-		for _, b := range a.Instances {
-			for _, c := range b.Tags {
-				if *c.Key == "Name" {
+	for _, reservation := range result.Reservations {
+		for _, instance := range reservation.Instances {
+			for _, tag := range instance.Tags {
+				if *tag.Key == "Name" {
 					ec2 := Ec2SecurityGroup{
-						Ec2Name:          *c.Value,
+						Ec2Name:          *tag.Value,
 						SecurityGroupIds: []string{},
 					}
-					for _, sg := range b.SecurityGroups {
+					for _, sg := range instance.SecurityGroups {
 						ec2.SecurityGroupIds = append(ec2.SecurityGroupIds, *sg.GroupId)
 					}
 					ec2s = append(ec2s, ec2)
