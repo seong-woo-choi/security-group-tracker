@@ -7,6 +7,7 @@ import (
 	elasticache "go-sdk/service/securityGroup/elasticache"
 	msk "go-sdk/service/securityGroup/msk"
 	rds "go-sdk/service/securityGroup/rds"
+	sg "go-sdk/service/securityGroup/sg"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -46,13 +47,19 @@ func GetSecurityGroup(c *fiber.Ctx) error {
 			return c.JSON(fiber.Map{"message": err.Error()})
 		}
 		return c.JSON(elasticache)
-	case "ec2":
-		err, ec2 := ec2.GetSecurityGroup(resourceName)
+	case "sg":
+		err, sg := sg.GetSecurityGroup(resourceName)
 		if err != nil {
 			return c.JSON(fiber.Map{"message": err.Error()})
 		}
-		return c.JSON(ec2)
+		return c.JSON(sg)
+	case "ec2":
+		err, sg := ec2.GetSecurityGroup(resourceName)
+		if err != nil {
+			return c.JSON(fiber.Map{"message": err.Error()})
+		}
+		return c.JSON(sg)
 	default:
-		return c.JSON(fiber.Map{"status": "404", "message": "옳바른 리소스 타입을 입력해주세요(alb, elasticache, msk, rds, docdb, rds, ec2)"})
+		return c.JSON(fiber.Map{"status": "404", "message": "옳바른 리소스 타입을 입력해주세요(alb, elasticache, msk, rds, docdb, rds, sg)"})
 	}
 }
