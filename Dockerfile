@@ -8,7 +8,7 @@ RUN go mod download && go mod verify
 
 COPY main.go ./
 
-RUN go build main.go
+RUN GOOS=linux go build main.go
 
 FROM gcr.io/distroless/base-debian11
 
