@@ -2,6 +2,7 @@ package docdb
 
 import (
 	"fmt"
+	"go-sdk/service/securityGroup/securityGroupAvailable"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,7 +12,7 @@ import (
 
 type DocdbSecurityGroup struct {
 	DocdbArnName     string
-	SecurityGroupIds []string
+	SecurityGroupIds []map[string]int
 }
 
 func GetSecurityGroup(resourceName string) (error, []DocdbSecurityGroup) {
@@ -43,16 +44,18 @@ func GetSecurityGroup(resourceName string) (error, []DocdbSecurityGroup) {
 		return err, docdbs
 	}
 
-	fmt.Println(result.DBInstances)
-
 	for _, instance := range result.DBInstances {
 		if strings.Contains(*instance.DBInstanceArn, resourceName) {
 			docdb := DocdbSecurityGroup{
 				DocdbArnName:     *instance.DBInstanceArn,
-				SecurityGroupIds: []string{},
+				SecurityGroupIds: []map[string]int{},
 			}
 			for _, securityGroupId := range instance.VpcSecurityGroups {
-				docdb.SecurityGroupIds = append(docdb.SecurityGroupIds, *securityGroupId.VpcSecurityGroupId)
+				err, countInboundRules := securityGroupAvailable.CountInboundRules(*securityGroupId.VpcSecurityGroupId)
+				if err != nil {
+					return err, docdbs
+				}
+				docdb.SecurityGroupIds = append(docdb.SecurityGroupIds, map[string]int{*securityGroupId.VpcSecurityGroupId: countInboundRules})
 			}
 			docdbs = append(docdbs, docdb)
 		}

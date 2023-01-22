@@ -2,6 +2,7 @@ package msk
 
 import (
 	"fmt"
+	"go-sdk/service/securityGroup/securityGroupAvailable"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,7 +12,7 @@ import (
 
 type AlbSecurityGroupId struct {
 	AlbName          string
-	SecurityGroupIds []string
+	SecurityGroupIds []map[string]int
 }
 
 func GetSecurityGroup(resourceName string) (error, []AlbSecurityGroupId) {
@@ -43,13 +44,18 @@ func GetSecurityGroup(resourceName string) (error, []AlbSecurityGroupId) {
 		if strings.Contains(*lb.LoadBalancerName, resourceName) {
 			alb := AlbSecurityGroupId{
 				AlbName:          *lb.LoadBalancerName,
-				SecurityGroupIds: []string{},
+				SecurityGroupIds: []map[string]int{},
 			}
 			for _, sg := range lb.SecurityGroups {
-				alb.SecurityGroupIds = append(alb.SecurityGroupIds, *sg)
+				err, countInboundRules := securityGroupAvailable.CountInboundRules(*sg)
+				if err != nil {
+					return err, albs
+				}
+				alb.SecurityGroupIds = append(alb.SecurityGroupIds, map[string]int{*sg: countInboundRules})
 			}
 			albs = append(albs, alb)
 		}
 	}
+
 	return nil, albs
 }

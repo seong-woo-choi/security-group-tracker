@@ -2,6 +2,7 @@ package elasticache
 
 import (
 	"fmt"
+	"go-sdk/service/securityGroup/securityGroupAvailable"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -10,7 +11,7 @@ import (
 
 type Ec2SecurityGroup struct {
 	Ec2Name          string
-	SecurityGroupIds []string
+	SecurityGroupIds []map[string]int
 }
 
 func GetSecurityGroup(resourceName string) (error, []Ec2SecurityGroup) {
@@ -51,10 +52,14 @@ func GetSecurityGroup(resourceName string) (error, []Ec2SecurityGroup) {
 				if *tag.Key == "Name" {
 					ec2 := Ec2SecurityGroup{
 						Ec2Name:          *tag.Value,
-						SecurityGroupIds: []string{},
+						SecurityGroupIds: []map[string]int{},
 					}
 					for _, sg := range instance.SecurityGroups {
-						ec2.SecurityGroupIds = append(ec2.SecurityGroupIds, *sg.GroupId)
+						err, countInboundRules := securityGroupAvailable.CountInboundRules(*sg.GroupId)
+						if err != nil {
+							return err, ec2s
+						}
+						ec2.SecurityGroupIds = append(ec2.SecurityGroupIds, map[string]int{*sg.GroupId: countInboundRules})
 					}
 					ec2s = append(ec2s, ec2)
 				}

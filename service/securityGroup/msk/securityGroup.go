@@ -2,6 +2,7 @@ package msk
 
 import (
 	"fmt"
+	"go-sdk/service/securityGroup/securityGroupAvailable"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,7 +12,7 @@ import (
 
 type MskSecurityGroupId struct {
 	MskClusterName   string
-	SecurityGroupIds []string
+	SecurityGroupIds []map[string]int
 }
 
 func GetSecurityGroup(resourceName string) (error, []MskSecurityGroupId) {
@@ -58,10 +59,14 @@ func GetSecurityGroup(resourceName string) (error, []MskSecurityGroupId) {
 	for _, val := range cluster {
 		msk := MskSecurityGroupId{
 			MskClusterName:   *val.ClusterName,
-			SecurityGroupIds: []string{},
+			SecurityGroupIds: []map[string]int{},
 		}
 		for _, securityGroupId := range val.BrokerNodeGroupInfo.SecurityGroups {
-			msk.SecurityGroupIds = append(msk.SecurityGroupIds, *securityGroupId)
+			err, countInboundRules := securityGroupAvailable.CountInboundRules(*securityGroupId)
+			if err != nil {
+				return err, msks
+			}
+			msk.SecurityGroupIds = append(msk.SecurityGroupIds, map[string]int{*securityGroupId: countInboundRules})
 		}
 		msks = append(msks, msk)
 	}

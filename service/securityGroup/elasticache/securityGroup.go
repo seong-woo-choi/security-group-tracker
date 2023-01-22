@@ -2,6 +2,7 @@ package elasticache
 
 import (
 	"fmt"
+	"go-sdk/service/securityGroup/securityGroupAvailable"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,7 +12,7 @@ import (
 
 type RedisSecurityGroup struct {
 	RedisArnName     string
-	SecurityGroupIds []string
+	SecurityGroupIds []map[string]int
 }
 
 func GetSecurityGroup(resourceName string) (error, []RedisSecurityGroup) {
@@ -39,10 +40,14 @@ func GetSecurityGroup(resourceName string) (error, []RedisSecurityGroup) {
 		if strings.Contains(*cluster.ARN, resourceName) {
 			elasticache := RedisSecurityGroup{
 				RedisArnName:     *cluster.ARN,
-				SecurityGroupIds: []string{},
+				SecurityGroupIds: []map[string]int{},
 			}
 			for _, securityGroup := range cluster.SecurityGroups {
-				elasticache.SecurityGroupIds = append(elasticache.SecurityGroupIds, *securityGroup.SecurityGroupId)
+				err, countInboundRules := securityGroupAvailable.CountInboundRules(*securityGroup.SecurityGroupId)
+				if err != nil {
+					return err, elasticaches
+				}
+				elasticache.SecurityGroupIds = append(elasticache.SecurityGroupIds, map[string]int{*securityGroup.SecurityGroupId: countInboundRules})
 			}
 			elasticaches = append(elasticaches, elasticache)
 		}

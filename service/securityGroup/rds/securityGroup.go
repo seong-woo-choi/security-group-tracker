@@ -2,6 +2,7 @@ package msk
 
 import (
 	"fmt"
+	"go-sdk/service/securityGroup/securityGroupAvailable"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,7 +12,7 @@ import (
 
 type RdsSecurityGroup struct {
 	RdsArnName       string
-	SecurityGroupIds []string
+	SecurityGroupIds []map[string]int
 }
 
 func GetSecurityGroup(resourceName string) (error, []RdsSecurityGroup) {
@@ -48,10 +49,14 @@ func GetSecurityGroup(resourceName string) (error, []RdsSecurityGroup) {
 		if strings.Contains(*instance.DBInstanceArn, resourceName) {
 			rds := RdsSecurityGroup{
 				RdsArnName:       *instance.DBInstanceArn,
-				SecurityGroupIds: []string{},
+				SecurityGroupIds: []map[string]int{},
 			}
 			for _, securityGroupId := range instance.VpcSecurityGroups {
-				rds.SecurityGroupIds = append(rds.SecurityGroupIds, *securityGroupId.VpcSecurityGroupId)
+				err, countInboundRules := securityGroupAvailable.CountInboundRules(*securityGroupId.VpcSecurityGroupId)
+				if err != nil {
+					return err, rdss
+				}
+				rds.SecurityGroupIds = append(rds.SecurityGroupIds, map[string]int{*securityGroupId.VpcSecurityGroupId: countInboundRules})
 			}
 			rdss = append(rdss, rds)
 		}
