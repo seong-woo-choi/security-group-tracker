@@ -7,7 +7,6 @@ import (
 	elasticache "go-sdk/service/securityGroup/elasticache"
 	msk "go-sdk/service/securityGroup/msk"
 	rds "go-sdk/service/securityGroup/rds"
-	"go-sdk/service/securityGroup/securityGroupAvailable"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -49,12 +48,6 @@ func GetSecurityGroup(c *fiber.Ctx) error {
 		return c.JSON(elasticache)
 	case "ec2":
 		err, sg := ec2.GetSecurityGroup(resourceName)
-		if err != nil {
-			return c.JSON(fiber.Map{"message": err.Error()})
-		}
-		return c.JSON(sg)
-	case "test":
-		err, sg := securityGroupAvailable.CountInboundRules(resourceName)
 		if err != nil {
 			return c.JSON(fiber.Map{"message": err.Error()})
 		}
